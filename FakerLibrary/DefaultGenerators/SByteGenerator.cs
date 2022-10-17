@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class SByteGenerator : IGenerator
+public sealed class SByteGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => (sbyte) random.Next(sbyte.MinValue, sbyte.MaxValue);
+    public override object Generate() => (sbyte) random.Next(sbyte.MinValue, sbyte.MaxValue);
+    public SByteGenerator() => GeneratingType = typeof(sbyte);
 }

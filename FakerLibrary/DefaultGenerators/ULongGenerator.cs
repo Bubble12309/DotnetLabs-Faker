@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class ULongGenerator : IGenerator
+public class ULongGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => (ulong) random.NextInt64(0, long.MaxValue);
+    public override object Generate() => (ulong) random.NextInt64(0, long.MaxValue);
+    public ULongGenerator() => GeneratingType = typeof(ulong);
 }

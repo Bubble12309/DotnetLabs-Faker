@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class FloatGenerator : IGenerator
+public sealed class FloatGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => random.NextSingle() * float.MaxValue;
+    public override object Generate() => random.NextSingle() * float.MaxValue;
+    public FloatGenerator() => GeneratingType = typeof(float);
 }

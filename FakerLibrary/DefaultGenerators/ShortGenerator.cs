@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class ShortGenerator : IGenerator
+public sealed class ShortGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => (short) random.Next(short.MinValue, short.MaxValue);
+    public override object Generate() => (short) random.Next(short.MinValue, short.MaxValue);
+    public ShortGenerator() => GeneratingType = typeof(short);
 }

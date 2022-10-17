@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class DecimalGenerator : IGenerator
+public sealed class DecimalGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => Convert.ToDecimal(random.Next(0,  Convert.ToInt32(decimal.MaxValue)));
+    public override object Generate() => Convert.ToDecimal(random.Next(0,  Convert.ToInt32(decimal.MaxValue)));
+    public DecimalGenerator() => GeneratingType = typeof(decimal);
 }

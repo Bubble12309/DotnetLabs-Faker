@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class CharGenerator : IGenerator
+public sealed class CharGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => Convert.ToChar(random.Next(0, Convert.ToInt32(char.MaxValue)));
+    public override object Generate() => Convert.ToChar(random.Next(0, Convert.ToInt32(char.MaxValue)));
+    public CharGenerator() => GeneratingType = typeof(char);
 }

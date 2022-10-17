@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class DoubleGenerator : IGenerator
+public sealed class DoubleGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => random.NextDouble() * double.MaxValue;
+    public override object Generate() => random.NextDouble() * double.MaxValue;
+    public DoubleGenerator() => GeneratingType = typeof(double);
 }

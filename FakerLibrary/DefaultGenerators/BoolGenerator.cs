@@ -2,8 +2,9 @@
 
 namespace University.DotnetLabs.Lab2.FakerLibrary.DefualtGenerators;
 
-public class BoolGenerator : IGenerator
+public sealed class BoolGenerator : Generator
 {
     Random random = new Random();
-    public object Generate() => random.Next(0, 1) == 1;
+    public override object Generate() => random.Next(0, 1) == 1;
+    public BoolGenerator() => GeneratingType = typeof(bool);
 }
