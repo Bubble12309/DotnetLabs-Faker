@@ -9,13 +9,18 @@ public class Faker : IFaker
 {
     public Dictionary<Type, Generator> Generators { get; } = new();
     protected MethodInfo _createMethodInfo = typeof(Faker).GetMethod("Create", new Type[0]);
+    protected FakerConfig? _configs;
+    public Type[]? CurrentGenerics { get; internal set; }
+    public Type[]? CurrentGenericDeclaration { get; internal set; }
+
     public ICollection<Exception> Exceptions { get; } = new LinkedList<Exception>();
-    public T? Create<T>()
+
+    public object? Create(Type createdType) 
     {
-        Type createdType = typeof(T);
         object createdObject;
         //------------------------------------------------If generator of T is registered--------------------------------
-        bool result = Generators.TryGetValue(createdType, out Generator? generator);
+        bool result = Generators.TryGetValue((createdType.IsGenericType)?createdType.GetGenericTypeDefinition():createdType, out Generator? generator);
+        CurrentGenerics = createdType.GetGenericArguments();
         if (result)
         {
             if (generator == null)
@@ -24,7 +29,7 @@ public class Faker : IFaker
             }
             else
             {
-                return (T)generator.Generate();
+                return generator.Generate();
             }
         }
         //-------------------------------------------------If generator of t isn't registered-----------------------------
@@ -33,7 +38,7 @@ public class Faker : IFaker
             //------------------------------------------------Start constructor----------------------------------------------
             ConstructorInfo[] constructors = createdType.GetConstructors();
             IEnumerable<ConstructorInfo> publicConstructors = from constructor in constructors where constructor.IsPublic && !constructor.IsAbstract select constructor;
-           
+
             if (publicConstructors.Count() == 0)
             {
                 throw new NotInstanceableException($"Class {createdType.FullName} declares no public constructors");
@@ -47,6 +52,7 @@ public class Faker : IFaker
             {
                 ParameterInfo parameterInfo = parametersInfo[i];
                 Type parameterType = parameterInfo.ParameterType;
+                CurrentGenerics = parameterType.GetGenericArguments();
                 if (parameterInfo.HasDefaultValue)
                 {
                     parameters[i] = parameterInfo.DefaultValue;
@@ -96,6 +102,7 @@ public class Faker : IFaker
                 foreach (FieldInfo fieldInfo in nonReadOnlyFields)
                 {
                     Type fieldType = fieldInfo.FieldType;
+                    CurrentGenerics = fieldType.GetGenericArguments();
                     result = Generators.TryGetValue(fieldType, out generator);
                     if (result)
                     {
@@ -141,6 +148,7 @@ public class Faker : IFaker
                 foreach (PropertyInfo propertyInfo in writeableProperties)
                 {
                     Type propertyType = propertyInfo.PropertyType;
+                    CurrentGenerics = propertyType.GetGenericArguments();
                     result = Generators.TryGetValue(propertyType, out generator);
                     if (result)
                     {
@@ -193,9 +201,17 @@ public class Faker : IFaker
             //------------------------------------------------End Fields & props----------------------------------------------
             //-----------------------------------End If generator isn't registered---------------------------------------------
         }
-        return (T) createdObject;
+        return createdObject;
+    }
+    public T? Create<T>()
+    {
+        return (T?)Create(typeof(T));
     }
 
+    public Faker(FakerConfig config) : this()
+    {
+        _configs = config; 
+    }
     public Faker()
     {
         Generator[] generators = {
@@ -211,7 +227,8 @@ public class Faker : IFaker
             new ShortGenerator(),
             new UIntGenerator(),
             new ULongGenerator(),
-            new UShortGenerator()
+            new UShortGenerator(),
+            new ListGenerator(this)
         };
         foreach (Generator generator in generators)
         {
