@@ -3,5 +3,5 @@
 public abstract class Generator
 {
     public Type GeneratingType { get; protected set; } = typeof(object);
-    public abstract object Generate();
+    public abstract object? Generate();
 }
