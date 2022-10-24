@@ -30,6 +30,7 @@ internal class Program
                             if (createdObject != null)
                             {
                                 generators.Add((Generator)createdObject);
+                                break;
                             }
                         }
                     }
@@ -54,5 +55,16 @@ internal class Program
         {
             Console.WriteLine(faker.Create<decimal>());
         }
+        List<double> list = faker.Create<List<double>>();
+        foreach (double element in list)
+        {
+            Console.Write($"elemnet is {element}, ");
+        }
+        List<List<double>> dlist = faker.Create<List<List<double>>>();
+        foreach (List<double> slist in dlist)
+            foreach (double element in slist)
+                Console.WriteLine($"Dlist element = {element}");
+
+        Console.WriteLine();
     }
 }
