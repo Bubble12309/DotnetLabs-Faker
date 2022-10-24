@@ -33,9 +33,10 @@ public class Faker : IFaker
             //------------------------------------------------Start constructor----------------------------------------------
             ConstructorInfo[] constructors = createdType.GetConstructors();
             IEnumerable<ConstructorInfo> publicConstructors = from constructor in constructors where constructor.IsPublic && !constructor.IsAbstract select constructor;
+           
             if (publicConstructors.Count() == 0)
             {
-                throw new NotInstanceableException("Class declares no public constructors");
+                throw new NotInstanceableException($"Class {createdType.FullName} declares no public constructors");
             }
             Random random = new Random();
             ConstructorInfo selectedConstructor = publicConstructors.ElementAt<ConstructorInfo>(
@@ -63,6 +64,10 @@ public class Faker : IFaker
                         {
                             parameters[i] = Activator.CreateInstance(parameterType);
                         }
+                        else if (parameterType.IsEnum)
+                        {
+                            parameters[i] = default;
+                        }
                         else
                         {
                             parameters[i] = null;
@@ -74,7 +79,7 @@ public class Faker : IFaker
             //-----------------------------------------------------End constructor----------------------------------------------
             createdObject = selectedConstructor.Invoke(parameters);
 
-            if (!createdType.IsValueType)
+            if (createdType.IsClass)
             {
                 Generator referenceReturner = new ReferenceReturner(null, createdType);
                 Generators.Remove(createdType);
@@ -91,7 +96,6 @@ public class Faker : IFaker
                 foreach (FieldInfo fieldInfo in nonReadOnlyFields)
                 {
                     Type fieldType = fieldInfo.FieldType;
-                    //Console.WriteLine($"{fieldType.Name} field with name {fieldInfo.Name}");
                     result = Generators.TryGetValue(fieldType, out generator);
                     if (result)
                     {
@@ -112,7 +116,7 @@ public class Faker : IFaker
                         try
                         {
                             createdField = recursiveMethod.Invoke(this, null);
-                            if (!fieldType.IsValueType)
+                            if (fieldType.IsClass)
                             {
                                 Generator referenceReturner = new ReferenceReturner(null, fieldType);
                                 Generators.Add(fieldType, referenceReturner);
@@ -126,7 +130,7 @@ public class Faker : IFaker
                         finally
                         {
                             fieldInfo.SetValue(createdObject, createdField);
-                            if (!fieldType.IsValueType)
+                            if (fieldType.IsClass)
                             {
                                 Generators.Remove(fieldType);
                             }
@@ -157,7 +161,7 @@ public class Faker : IFaker
                         try
                         {
                             createdField = recursiveMethod.Invoke(this, null);
-                            if (!propertyType.IsValueType)
+                            if (propertyType.IsClass)
                             {
                                 Generator referenceReturner = new ReferenceReturner(null, propertyType);
                                 Generators.Add(propertyType, referenceReturner);
@@ -171,7 +175,7 @@ public class Faker : IFaker
                         finally
                         {
                             propertyInfo.SetValue(createdObject, createdField);
-                            if (!propertyType.IsValueType)
+                            if (propertyType.IsClass)
                             {
                                 Generators.Remove(propertyType);
                             }
@@ -181,7 +185,7 @@ public class Faker : IFaker
             }
             finally
             {
-                if (!createdType.IsValueType)
+                if (createdType.IsClass)
                 {
                     Generators.Remove(createdType);
                 }
