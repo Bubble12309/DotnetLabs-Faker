@@ -9,7 +9,7 @@ public class Faker : IFaker
 {
     public Dictionary<Type, Generator> Generators { get; } = new();
     protected MethodInfo _createMethodInfo = typeof(Faker).GetMethod("Create", new Type[0]);
-    protected FakerConfig? _configs;
+    protected FakerConfig? _config;
     public Type[]? CurrentGenerics { get; internal set; }
     public Type[]? CurrentGenericDeclaration { get; internal set; }
 
@@ -59,7 +59,15 @@ public class Faker : IFaker
                 }
                 else
                 {
-                    result = Generators.TryGetValue(parameterType, out generator);
+                    //configs first
+                    if (_config != null) 
+                    {
+                        result = _config.Generators.TryGetValue(createdType.FullName + "." + parameterInfo.Name.ToLower(), out generator);
+                    }
+                    if (!result || generator == null)
+                    {
+                        result = Generators.TryGetValue(parameterType, out generator);
+                    }
                     if (result && generator != null)
                     {
                         parameters[i] = generator.Generate();
@@ -95,7 +103,7 @@ public class Faker : IFaker
             {
                 //------------------------------------------------Start Fields & props----------------------------------------------
                 FieldInfo[] publicFields = createdType.GetFields();
-                IEnumerable<FieldInfo> nonReadOnlyFields = from publicField in publicFields where !publicField.IsInitOnly select publicField;
+                IEnumerable<FieldInfo> nonReadOnlyFields = from publicField in publicFields where !publicField.IsInitOnly && !publicField.IsStatic select publicField;
                 PropertyInfo[] publicProperties = createdType.GetProperties();
                 IEnumerable<PropertyInfo> writeableProperties = from publicProperty in publicProperties where publicProperty.CanWrite && (publicProperty.SetMethod != null) select publicProperty;
                 //-----------------------------------Fields------------------------------------    
@@ -103,7 +111,14 @@ public class Faker : IFaker
                 {
                     Type fieldType = fieldInfo.FieldType;
                     CurrentGenerics = fieldType.GetGenericArguments();
-                    result = Generators.TryGetValue(fieldType, out generator);
+                    if (_config != null)
+                    {
+                        result = _config.Generators.TryGetValue(createdType.FullName + "." + fieldInfo.Name.ToLower(), out generator);
+                    }
+                    if (!result || generator == null)
+                    {
+                        result = Generators.TryGetValue(fieldType, out generator);
+                    }
                     if (result)
                     {
                         if (generator == null)
@@ -149,7 +164,14 @@ public class Faker : IFaker
                 {
                     Type propertyType = propertyInfo.PropertyType;
                     CurrentGenerics = propertyType.GetGenericArguments();
-                    result = Generators.TryGetValue(propertyType, out generator);
+                    if (_config != null)
+                    {
+                        result = _config.Generators.TryGetValue(createdType.FullName + "." + propertyInfo.Name.ToLower(), out generator);
+                    }
+                    if (!result || generator == null)
+                    {
+                        result = Generators.TryGetValue(propertyType, out generator);
+                    }
                     if (result)
                     {
                         if (generator == null)
@@ -210,7 +232,7 @@ public class Faker : IFaker
 
     public Faker(FakerConfig config) : this()
     {
-        _configs = config; 
+        _config = config; 
     }
     public Faker()
     {

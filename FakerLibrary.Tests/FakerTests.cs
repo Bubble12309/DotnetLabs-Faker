@@ -65,5 +65,13 @@ public class FakerTests
         _faker.Create<Generator>();
     }
 
+    [TestMethod]
+    public void TestConfig() 
+    {
+        FakerConfig configs = new FakerConfig();
+        configs.Add<Point, int>(p => p.X, new IntValueGenerator(-10));
+        Faker newFaker = new Faker(configs);
+        Point p = newFaker.Create<Point>();
+    }
 
 }

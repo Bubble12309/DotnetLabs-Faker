@@ -65,6 +65,10 @@ internal class Program
             foreach (double element in slist)
                 Console.WriteLine($"Dlist element = {element}");
 
-        Console.WriteLine();
+        FakerConfig configs = new FakerConfig();
+        configs.Add<Point, int>(p => p.X, new IntValueGenerator(-10));
+        Faker newFaker = new Faker(configs);
+        Point p = newFaker.Create<Point>();
+        Console.WriteLine(p);
     }
 }
